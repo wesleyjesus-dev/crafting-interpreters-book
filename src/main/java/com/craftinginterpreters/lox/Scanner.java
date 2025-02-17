@@ -36,9 +36,19 @@ class Scanner {
         keywords.put("while",  WHILE);
     }
 
-
     Scanner(String source) {
         this.source = source;
+    }
+
+    List<Token> scanTokens() {
+        while (!isAtEnd()) {
+            // We are at the beginning of the next lexeme.
+            start = current;
+            scanToken();
+        }
+
+        tokens.add(new Token(EOF, "", null, line));
+        return tokens;
     }
 
     private void scanToken() {
@@ -79,7 +89,6 @@ class Scanner {
             case '\t':
                 // Ignore whitespace.
                 break;
-
             case '\n':
                 line++;
                 break;
@@ -187,17 +196,6 @@ class Scanner {
     private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, line));
-    }
-
-    List<Token> scanTokens() {
-        while (!isAtEnd()) {
-            // We are at the beginning of the next lexeme.
-            start = current;
-            scanToken();
-        }
-
-        tokens.add(new Token(EOF, "", null, line));
-        return tokens;
     }
 
     private boolean isAtEnd() {
