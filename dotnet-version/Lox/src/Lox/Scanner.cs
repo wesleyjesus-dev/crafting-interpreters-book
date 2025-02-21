@@ -1,5 +1,6 @@
 namespace Lox;
 
+using LoxGenerator;
 public class Scanner(string source)
 {
     private string _source = source;
@@ -66,7 +67,19 @@ public class Scanner(string source)
                     {
                         Advanced();
                     }
-  
+
+                }
+                else if (MatchWith('*'))
+                {
+                    while (Peek() != '\n' && !IsAtEnd())
+                    {
+                        Advanced();
+
+                        if (IsEndFromCommend())
+                        {
+                            break;
+                        }
+                    }
                 }
                 else
                 {
@@ -108,6 +121,16 @@ public class Scanner(string source)
         }
     }
 
+    public bool IsEndFromCommend()
+    {
+        if (_source[_current] == '*' && PeekNext() == '/')
+        {
+            _current++;
+            return true;
+        }
+        return false;
+    }
+
     private void Identifier()
     {
         while (IsAlphaNumeric(Peek()))
@@ -115,7 +138,7 @@ public class Scanner(string source)
             Advanced();
         }
         
-        var text = source.Substring(_start, _current);
+        var text = source.JSubstring(_start, _current);
         if (!keywords.TryGetValue(text, out TokenType keyword))
         {
             keyword = TokenType.Identifier;
