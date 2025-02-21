@@ -1,6 +1,4 @@
 namespace Lox;
-
-using LoxGenerator;
 public class Scanner(string source)
 {
     private string _source = source;
