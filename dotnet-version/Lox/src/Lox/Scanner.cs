@@ -169,7 +169,7 @@ public class Scanner(string source)
             }
         }
         
-        AddToken(TokenType.Number, double.Parse(_source.Substring(_start, _current)));
+        AddToken(TokenType.Number, double.Parse(_source.JSubstring(_start, _current)));
     }
 
     /// <summary>
