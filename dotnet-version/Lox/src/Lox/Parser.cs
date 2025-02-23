@@ -124,11 +124,9 @@ public class Parser
         if (LoxMatch(TokenType.False)) return new Expr.Literal(false);
         if (LoxMatch(TokenType.True)) return new Expr.Literal(true);
         if (LoxMatch(TokenType.Nil)) return new Expr.Literal(null);
-
         if (LoxMatch(TokenType.Number, TokenType.String)) {
             return new Expr.Literal(Previous().Literal);
         }
-
         if (LoxMatch(TokenType.LeftParen)) {
             Expr expr = Expression();
             Consume(TokenType.RightParen, "Expect ')' after expression.");
