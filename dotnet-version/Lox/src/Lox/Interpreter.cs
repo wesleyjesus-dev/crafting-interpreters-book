@@ -4,6 +4,33 @@ namespace Lox;
 
 public class Interpreter : Expr.IVisitor<object>
 {
+    public void Interpret(Expr expr)
+    {
+        try
+        {
+            var value = Evaluate(expr);
+            Console.WriteLine(Stringify(value));
+        }
+        catch (RuntimeError exception)
+        {
+            Program.RuntimeError(exception);
+        }
+    }
+
+    public string Stringify(object value)
+    {
+        if (value is null) return "nil";
+        if (value is double)
+        {
+            var text = value.ToString();
+            if (text.EndsWith(".0"))
+            {
+                text = text.JSubstring(0, text.Length - 2);
+            }
+            return text;
+        }
+        return value.ToString();
+    }
     public object VisitBinaryExpr(Expr.Binary expr)
     {
         var left = Evaluate(expr.Left);
@@ -12,14 +39,19 @@ public class Interpreter : Expr.IVisitor<object>
         switch (expr.Opt.Type)
         {
             case TokenType.Greater:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left > (double)right;
             case TokenType.GreaterEqual:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left >= (double)right;
             case TokenType.Less:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left < (double)right;
             case TokenType.LessEqual:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left <= (double)right;
             case TokenType.Minus:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left - (double)right;
             case TokenType.Plus:
                 if (left is double && right is double)
@@ -31,10 +63,13 @@ public class Interpreter : Expr.IVisitor<object>
                 {
                     return (string)left + (string)right;
                 }
-                break;
+
+                throw new RuntimeError(expr.Opt, "Operands must be two numbers or two strings.");
             case TokenType.Slash:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left / (double)right;
             case TokenType.Star:
+                CheckNumberOperands(expr.Opt, left, right);
                 return (double)left * (double)right;
             case TokenType.BangEqual:
                 return !IsEqual(left, right);
@@ -46,7 +81,19 @@ public class Interpreter : Expr.IVisitor<object>
         return null;
     }
 
-    public bool IsEqual(object left, object right)
+    private void CheckNumberOperand(Token token, object operand)
+    {
+        if (operand is double) return;
+        throw new RuntimeError(token, "Operand must be a number.");
+    }
+
+    private void CheckNumberOperands(Token token, object left, object right)
+    {
+        if (left is double && right is double) return;
+        throw new RuntimeError(token, "Operands must be numbers.");
+    }
+    
+    private bool IsEqual(object left, object right)
     {
         if (left is null && right is null) return true;
         if (left is null) return false;
@@ -89,14 +136,15 @@ public class Interpreter : Expr.IVisitor<object>
     /// </returns>
     public object VisitUnaryExpr(Expr.Unary expr)
     {
-        var rightExpr = Evaluate(expr.Right);
+        var right = Evaluate(expr.Right);
 
         switch (expr.Opt.Type)
         {
             case TokenType.Bang:
-                return !IsTruthy(rightExpr);
+                return !IsTruthy(right);
             case TokenType.Minus:
-                return -(double)rightExpr;
+                CheckNumberOperand(expr.Opt, right);
+                return -(double)right;
         }
         
         //  unrechable.
@@ -108,5 +156,15 @@ public class Interpreter : Expr.IVisitor<object>
         if (rightExpr is null) return false;
         if (rightExpr is bool b) return b;
         return true;
+    }
+
+    public class RuntimeError: Exception
+    {
+        public RuntimeError(Token token, string message)
+        : base($"Token: {token} | Message: {message}")
+        {
+            Token = token;
+        }
+        public Token Token;
     }
 }

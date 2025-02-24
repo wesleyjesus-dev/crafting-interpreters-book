@@ -5,7 +5,9 @@ namespace Lox
     internal class Program
     {
         private static bool _hadError = false;
+        private static bool _hadRuntimeError = false;
         
+        private static Interpreter _interpreter = new ();
         static void Main(string[] args)
         {
             if (args.Length > 1)
@@ -59,12 +61,14 @@ namespace Lox
             // Stop if there was a syntax error.
             if (_hadError) return;
 
-            Console.WriteLine(new AstPrinter().Print(expression));
+            //Console.WriteLine(new AstPrinter().Print(expression));
             
-            foreach (var token in tokens)
-            {
-                Console.WriteLine(token);
-            }
+            _interpreter.Interpret(expression);
+            
+            // foreach (var token in tokens)
+            // {
+            //     Console.WriteLine(token);
+            // }
         }
 
         public static void Error(int line, string message) =>
@@ -74,6 +78,12 @@ namespace Lox
         {
             Console.Error.WriteLine($"[line {line}] Error: {where}: {message}");
             _hadError = true;
+        }
+
+        public static void RuntimeError(Interpreter.RuntimeError error)
+        {
+            Console.Error.WriteLine($"{error.Message} \n[line ${error.Token.Line}]");
+            _hadRuntimeError = true;
         }
         
         public static void Error(Token token, String message) {
