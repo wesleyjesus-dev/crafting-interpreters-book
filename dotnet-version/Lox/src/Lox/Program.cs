@@ -6,7 +6,6 @@ namespace Lox
     {
         private static bool _hadError = false;
         private static bool _hadRuntimeError = false;
-        
         private static Interpreter _interpreter = new ();
         static void Main(string[] args)
         {
@@ -24,7 +23,6 @@ namespace Lox
                 RunPrompt();
             }
         }
-
         static void RunPrompt()
         {
             
@@ -40,7 +38,6 @@ namespace Lox
                 _hadError = false;
             }
         }
-
         static void RunFile(string path)
         {
             var file = File.ReadAllText(path);
@@ -70,28 +67,24 @@ namespace Lox
             //     Console.WriteLine(token);
             // }
         }
-
         public static void Error(int line, string message) =>
             Report(line, "", message);
-
-        private static void Report(int line, string where, string message)
-        {
-            Console.Error.WriteLine($"[line {line}] Error: {where}: {message}");
-            _hadError = true;
-        }
-
         public static void RuntimeError(Interpreter.RuntimeError error)
         {
             Console.Error.WriteLine($"{error.Message} \n[line ${error.Token.Line}]");
             _hadRuntimeError = true;
         }
-        
         public static void Error(Token token, String message) {
             if (token.Type == TokenType.Eof) {
                 Report(token.Line, " at end", message);
             } else {
                 Report(token.Line, " at '" + token.Lexeme + "'", message);
             }
+        }
+        private static void Report(int line, string where, string message)
+        {
+            Console.Error.WriteLine($"[line {line}] Error: {where}: {message}");
+            _hadError = true;
         }
     }
 }

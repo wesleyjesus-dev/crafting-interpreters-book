@@ -64,9 +64,20 @@ public class Interpreter : Expr.IVisitor<object>
                     return (string)left + (string)right;
                 }
 
+                if (left is string && right is double)
+                {
+                    return (string)left + right;
+                }
+
+                if (left is double && right is string)
+                {
+                    return left + (string)right;
+                }
+
                 throw new RuntimeError(expr.Opt, "Operands must be two numbers or two strings.");
             case TokenType.Slash:
                 CheckNumberOperands(expr.Opt, left, right);
+                CheckDivisorByZero(expr.Opt, right);
                 return (double)left / (double)right;
             case TokenType.Star:
                 CheckNumberOperands(expr.Opt, left, right);
@@ -79,6 +90,12 @@ public class Interpreter : Expr.IVisitor<object>
 
         //  unrechable.
         return null;
+    }
+
+    private void CheckDivisorByZero(Token exprOpt, object right)
+    {
+        if ((double)right == 0)
+            throw new RuntimeError(exprOpt, "Cannot divide by zero.");
     }
 
     private void CheckNumberOperand(Token token, object operand)
