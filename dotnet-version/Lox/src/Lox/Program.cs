@@ -53,14 +53,14 @@ namespace Lox
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
             Parser parser = new Parser(tokens);
-            Expr expression = parser.Parse();
+            var expressions = parser.Parse();
 
             // Stop if there was a syntax error.
             if (_hadError) return;
 
             //Console.WriteLine(new AstPrinter().Print(expression));
             
-            _interpreter.Interpret(expression);
+            _interpreter.Interpret(expressions);
             
             // foreach (var token in tokens)
             // {

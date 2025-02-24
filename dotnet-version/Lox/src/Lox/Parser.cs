@@ -12,10 +12,8 @@ public class Parser
     private List<Token> _tokens;
     private int _current = 0;
 
-    public Parser(List<Token> tokens)
-    {
-        _tokens = tokens;
-    }
+    public Parser(List<Token> tokens) => _tokens = tokens;
+    
 
     private Expr Expression()
     {
@@ -170,11 +168,37 @@ public class Parser
         }
     }
     
-    public Expr Parse() {
-        try {
-            return Expression();
-        } catch (ParseError error) {
-            return null;
+    public List<Stmt> Parse() {
+        var statements = new List<Stmt>();
+        while (!IsAtEnd())
+        {
+            statements.Add(Statements());
         }
+
+        return statements;
+    }
+
+    private Stmt Statements()
+    {
+        if (LoxMatch(TokenType.Print))
+        {
+            return PrintStatement();
+        }
+
+        return ExpressionStatement();
+    }
+
+    private Stmt ExpressionStatement()
+    {
+        Expr expr = Expression();
+        Consume(TokenType.Semicolon, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Stmt PrintStatement()
+    {
+        Expr value = Expression();
+        Consume(TokenType.Semicolon, "Expect ';' after value.");
+        return new Stmt.Print(value);
     }
 }

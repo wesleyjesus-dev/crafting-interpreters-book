@@ -2,19 +2,30 @@ using LoxGenerator;
 
 namespace Lox;
 
-public class Interpreter : Expr.IVisitor<object>
+public struct Unit
 {
-    public void Interpret(Expr expr)
+    public static Unit Value => default;
+}
+public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
+{
+    public void Interpret(List<Stmt> statements)
     {
         try
         {
-            var value = Evaluate(expr);
-            Console.WriteLine(Stringify(value));
+            foreach (var statement in statements)
+            {
+                Execute(statement);
+            }
         }
         catch (RuntimeError exception)
         {
             Program.RuntimeError(exception);
         }
+    }
+
+    private void Execute(Stmt statement)
+    {
+        statement.Accept(this);
     }
 
     public string Stringify(object value)
@@ -91,25 +102,21 @@ public class Interpreter : Expr.IVisitor<object>
         //  unrechable.
         return null;
     }
-
     private void CheckDivisorByZero(Token exprOpt, object right)
     {
         if ((double)right == 0)
             throw new RuntimeError(exprOpt, "Cannot divide by zero.");
     }
-
     private void CheckNumberOperand(Token token, object operand)
     {
         if (operand is double) return;
         throw new RuntimeError(token, "Operand must be a number.");
     }
-
     private void CheckNumberOperands(Token token, object left, object right)
     {
         if (left is double && right is double) return;
         throw new RuntimeError(token, "Operands must be numbers.");
     }
-    
     private bool IsEqual(object left, object right)
     {
         if (left is null && right is null) return true;
@@ -183,5 +190,18 @@ public class Interpreter : Expr.IVisitor<object>
             Token = token;
         }
         public Token Token;
+    }
+
+    public Unit VisitExpressionExpr(Stmt.Expression stmt)
+    {
+        Evaluate(stmt.LoxExpression);
+        return Unit.Value;
+    }
+
+    public Unit VisitPrintExpr(Stmt.Print stmt)
+    {
+        object value = Evaluate(stmt.LoxExpression);
+        Console.WriteLine(Stringify(value));
+        return Unit.Value;
     }
 }
