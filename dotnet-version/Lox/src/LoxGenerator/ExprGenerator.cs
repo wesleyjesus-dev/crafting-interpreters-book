@@ -88,6 +88,9 @@ public class Token
 
         public void Execute(GeneratorExecutionContext context)
         {
+            context.AddSource("Token.g.cs", SourceText.From(_token, Encoding.UTF8));
+            context.AddSource("TokenType.g.cs", SourceText.From(_tokenEnum, Encoding.UTF8));
+            
             var backusNaurFormLox = new Dictionary<string, List<string>>()
             {
                 { "Binary"   , ["Expr left", "Token opt", "Expr right"] },
@@ -97,6 +100,14 @@ public class Token
             };
             
             DefineAst("Expr", backusNaurFormLox, context);
+            
+            var backusNaurFormLoxToStatementAndExpressions = new Dictionary<string, List<string>>()
+            {
+                { "Expression", ["Expr loxExpression"] },
+                { "Print", ["Expr loxExpression"] },
+            };
+            
+            DefineAst("Stmt", backusNaurFormLoxToStatementAndExpressions, context);
         }
         private void DefineAst(string baseName, Dictionary<string, List<string>> types, GeneratorExecutionContext context)
         {
@@ -116,9 +127,7 @@ namespace LoxGenerator
         {DefineType(baseName, types)}
     }}
 }}";
-            context.AddSource("Token.g.cs", SourceText.From(_token, Encoding.UTF8));
-            context.AddSource("TokenType.g.cs", SourceText.From(_tokenEnum, Encoding.UTF8));
-            context.AddSource("Expr.g.cs", SourceText.From(source, Encoding.UTF8));
+            context.AddSource($"{baseName}.g.cs",  CodeFormatter.FormatCode(source));
         }
 
         private string DefineVisitor(string baseName, Dictionary<string, List<string>> types)
