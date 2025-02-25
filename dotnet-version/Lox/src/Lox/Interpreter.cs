@@ -8,6 +8,7 @@ public struct Unit
 }
 public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
 {
+    private Environment _enviroment = new Environment();
     public void Interpret(List<Stmt> statements)
     {
         try
@@ -28,7 +29,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
         statement.Accept(this);
     }
 
-    public string Stringify(object value)
+    private string Stringify(object value)
     {
         if (value is null) return "nil";
         if (value is double)
@@ -175,6 +176,8 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
         return null;
     }
 
+    public object VisitVariableExpr(Expr.Variable expr) => _enviroment.Get(expr.Name);
+    
     private bool IsTruthy(object rightExpr)
     {
         if (rightExpr is null) return false;
@@ -192,16 +195,27 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
         public Token Token;
     }
 
-    public Unit VisitExpressionExpr(Stmt.Expression stmt)
+    public Unit VisitExpressionStmt(Stmt.Expression stmt)
     {
         Evaluate(stmt.LoxExpression);
         return Unit.Value;
     }
 
-    public Unit VisitPrintExpr(Stmt.Print stmt)
+    public Unit VisitPrintStmt(Stmt.Print stmt)
     {
         object value = Evaluate(stmt.LoxExpression);
         Console.WriteLine(Stringify(value));
+        return Unit.Value;
+    }
+
+    public Unit VisitVarStmt(Stmt.Var stmt)
+    {
+        object value = null;
+        if (stmt.Initializer != null) {
+            value = Evaluate(stmt.Initializer);
+        }
+
+        _enviroment.Define(stmt.Name.Lexeme, value);
         return Unit.Value;
     }
 }

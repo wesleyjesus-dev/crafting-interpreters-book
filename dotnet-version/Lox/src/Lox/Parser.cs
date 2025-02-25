@@ -124,6 +124,11 @@ public class Parser
         if (LoxMatch(TokenType.Number, TokenType.String)) {
             return new Expr.Literal(Previous().Literal);
         }
+
+        if (LoxMatch(TokenType.Identifier))
+        {
+            return new Expr.Variable(Previous());
+        }
         if (LoxMatch(TokenType.LeftParen)) {
             Expr expr = Expression();
             Consume(TokenType.RightParen, "Expect ')' after expression.");
@@ -172,10 +177,38 @@ public class Parser
         var statements = new List<Stmt>();
         while (!IsAtEnd())
         {
-            statements.Add(Statements());
+            statements.Add(Declarition());
         }
 
         return statements;
+    }
+
+    private Stmt Declarition()
+    {
+        try
+        {
+            if (LoxMatch(TokenType.Var)) return VarDeclaration();
+
+            return Statements();
+        }
+        catch (ParseError exception)
+        {
+            Synchronize();
+            return null;
+        }
+    }
+
+    private Stmt VarDeclaration()
+    {
+        Token name = Consume(TokenType.Identifier, "Expect variable name.");
+        
+        Expr initializer = null;
+        if (LoxMatch(TokenType.Equal))
+        {
+            initializer = Expression();
+        }
+        Consume(TokenType.Semicolon, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     private Stmt Statements()

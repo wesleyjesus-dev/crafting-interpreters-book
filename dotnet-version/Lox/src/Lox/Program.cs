@@ -7,12 +7,13 @@ namespace Lox
         private static bool _hadError = false;
         private static bool _hadRuntimeError = false;
         private static Interpreter _interpreter = new ();
+        private Environment _environment = new Environment();
         static void Main(string[] args)
         {
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: dlox [script]");
-                Environment.Exit(64);
+                System.Environment.Exit(64);
             } 
             else if (args.Length == 1)
             {
@@ -45,7 +46,7 @@ namespace Lox
 
             if (_hadError)
             {
-                Environment.Exit(64);
+                System.Environment.Exit(64);
             }
         }
         static void Run(string source)

@@ -97,6 +97,7 @@ public class Token
                 { "Grouping" , ["Expr expression" ] },
                 { "Literal"  , ["Object value" ] },
                 { "Unary"    , ["Token opt", "Expr right"] },
+                { "Variable", ["Token name"] }
             };
             
             DefineAst("Expr", backusNaurFormLox, context);
@@ -105,6 +106,7 @@ public class Token
             {
                 { "Expression", ["Expr loxExpression"] },
                 { "Print", ["Expr loxExpression"] },
+                { "Var", ["Token name", "Expr initializer"] },
             };
             
             DefineAst("Stmt", backusNaurFormLoxToStatementAndExpressions, context);
@@ -132,7 +134,7 @@ namespace LoxGenerator
 
         private string DefineVisitor(string baseName, Dictionary<string, List<string>> types)
         {
-            var methods = String.Join("\n", types.Select(x => $"T Visit{x.Key}Expr({x.Key} expr);\n").ToArray());
+            var methods = String.Join("\n", types.Select(x => $"T Visit{x.Key}{baseName}({x.Key} expr);\n").ToArray());
             return @$"public interface IVisitor<T> 
         {{
             {{methods}}
@@ -176,7 +178,7 @@ namespace LoxGenerator
 
             public override T Accept<T>(IVisitor<T> visitor)
             {{
-                return visitor.Visit{className}Expr(this);
+                return visitor.Visit{className}{baseName}(this);
             }}
         }}";
                 bodyNestedClasses += "\n";
