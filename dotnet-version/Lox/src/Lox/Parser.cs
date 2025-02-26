@@ -17,7 +17,28 @@ public class Parser
 
     private Expr Expression()
     {
-        return Equality();
+        return Assigment();
+    }
+
+    private Expr Assigment()
+    {
+       var expr = Equality();
+
+       if (LoxMatch(TokenType.Equal))
+       {
+           Token equals = Previous();
+           Expr value = Assigment();
+
+           if (expr is Expr.Variable variable)
+           {
+               Token name = ((Expr.Variable)expr).Name;
+               return new Expr.Assign(name, value);
+           }
+           
+           throw Error(equals, "Invalid assignment target.");
+       }
+
+       return expr;
     }
 
     private Expr Equality()

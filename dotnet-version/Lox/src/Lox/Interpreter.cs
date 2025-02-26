@@ -43,6 +43,14 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
         }
         return value.ToString();
     }
+
+    public object VisitAssignExpr(Expr.Assign expr)
+    {
+        var value = Evaluate(expr.Value);
+        _enviroment.Assign(expr.Name, value);
+        return value;
+    }
+
     public object VisitBinaryExpr(Expr.Binary expr)
     {
         var left = Evaluate(expr.Left);

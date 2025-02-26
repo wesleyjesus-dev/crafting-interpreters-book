@@ -93,6 +93,7 @@ public class Token
             
             var backusNaurFormLox = new Dictionary<string, List<string>>()
             {
+                { "Assign"   , ["Token name", "Expr value"] },
                 { "Binary"   , ["Expr left", "Token opt", "Expr right"] },
                 { "Grouping" , ["Expr expression" ] },
                 { "Literal"  , ["Object value" ] },

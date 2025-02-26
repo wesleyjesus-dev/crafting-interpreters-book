@@ -8,6 +8,12 @@ public class AstPrinter : Expr.IVisitor<String>
     public string Print(Expr expr) {
         return expr.Accept(this);
     }
+
+    public string VisitAssignExpr(Expr.Assign expr)
+    {
+        throw new NotImplementedException();
+    }
+
     public string VisitBinaryExpr(Expr.Binary expr)
         => Parenthesize(expr.Opt.Lexeme, expr.Left, expr.Right);
 
