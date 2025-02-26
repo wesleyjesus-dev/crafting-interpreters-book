@@ -10,86 +10,15 @@ namespace LoxGenerator
     [Generator]
     public class ExprGenerator : ISourceGenerator
     {
-        private const string _tokenEnum = @"
-public enum TokenType
-{
-    // Single-character tokens.
-    LeftParen, 
-    RightParen, 
-    LeftBrace, 
-    RightBrace,
-    Comma, 
-    Dot, 
-    Minus, 
-    Plus, 
-    Semicolon, 
-    Slash, 
-    Star,
-
-    // One or two character tokens.
-    Bang, // ! 
-    BangEqual, // !=
-    Equal, // =
-    EqualEqual, // ==
-    Greater, // >
-    GreaterEqual, // >=
-    Less, // <
-    LessEqual, // <=
-
-    // Literals.
-    Identifier, 
-    String, 
-    Number,
-
-    // Keywords.
-    And, 
-    Class, 
-    Else, 
-    False, 
-    Fun, 
-    For, 
-    If, 
-    Nil, 
-    Or,
-    Print, 
-    Return, 
-    Super, 
-    This, 
-    True, 
-    Var, 
-    While,
-
-    Eof
-}
-";
-        private const string _token = @"
-public class Token
-{
-    public Token(TokenType type, string lexeme, object literal, int line)
-    {
-        Type = type;
-        Lexeme = lexeme;
-        Literal = literal;
-        Line = line;
-    }
-
-    public TokenType Type { get; set; }
-    public string Lexeme { get; set; }
-    public Object Literal { get; set; }
-    public int Line { get; set; }
-
-    public override string ToString() => $""{Type} {Lexeme} {Literal}"";
-}
-";
-        
         public void Initialize(GeneratorInitializationContext context)
         {
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource("Token.g.cs", SourceText.From(_token, Encoding.UTF8));
-            context.AddSource("TokenType.g.cs", SourceText.From(_tokenEnum, Encoding.UTF8));
+            context.AddSource("Token.g.cs", SourceText.From(TokenClasses.Token, Encoding.UTF8));
+            
+            context.AddSource("TokenType.g.cs", SourceText.From(TokenClasses.TokenEnum, Encoding.UTF8));
             
             var backusNaurFormLox = new Dictionary<string, List<string>>()
             {
@@ -114,33 +43,35 @@ public class Token
         }
         private void DefineAst(string baseName, Dictionary<string, List<string>> types, GeneratorExecutionContext context)
         {
-            string source = $@"using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+            string source = $@"
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
 
-namespace LoxGenerator
-{{
-    public abstract class {baseName}
-    {{
-        {DefineVisitor(baseName, types)}
+            namespace LoxGenerator
+            {{
+                public abstract class {baseName}
+                {{
+                    {DefineVisitor(baseName, types)}
 
-        public abstract T Accept<T>(IVisitor<T> visitor);
+                    public abstract T Accept<T>(IVisitor<T> visitor);
 
-        {DefineType(baseName, types)}
-    }}
-}}";
+                    {DefineType(baseName, types)}
+                }}
+            }}";
             context.AddSource($"{baseName}.g.cs",  CodeFormatter.FormatCode(source));
         }
 
         private string DefineVisitor(string baseName, Dictionary<string, List<string>> types)
         {
             var methods = String.Join("\n", types.Select(x => $"T Visit{x.Key}{baseName}({x.Key} expr);\n").ToArray());
-            return @$"public interface IVisitor<T> 
-        {{
-            {{methods}}
-        }}
-".Replace("{methods}", methods);
+            return @$"
+            public interface IVisitor<T> 
+            {{
+                {{methods}}
+            }}
+            ".Replace("{methods}", methods);
         }
 
         private string SetUpperCaseOnlyFirstLetter(string input)
@@ -169,22 +100,22 @@ namespace LoxGenerator
                 var properties = String.Join("\n", type.Value.Select(x => $"            public {SetUpperCaseOnlyFirstLetter(x)} {{ get; set; }}\n"));
                 
                 bodyNestedClasses += $@"public class {className} : {baseName}
-        {{
-            {properties}      
-    
-            public {className}({string.Join(",", propertiesFromClasses)})
-            {{
-                {props}
-            }}
+                {{
+                    {properties}      
 
-            public override T Accept<T>(IVisitor<T> visitor)
-            {{
-                return visitor.Visit{className}{baseName}(this);
-            }}
-        }}";
+                    public {className}({string.Join(",", propertiesFromClasses)})
+                    {{
+                        {props}
+                    }}
+
+                    public override T Accept<T>(IVisitor<T> visitor)
+                    {{
+                        return visitor.Visit{className}{baseName}(this);
+                    }}
+                }}";
+                
                 bodyNestedClasses += "\n";
             }
-
             return bodyNestedClasses;
         }
     }
