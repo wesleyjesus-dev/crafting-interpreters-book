@@ -203,6 +203,29 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<Unit>
         public Token Token;
     }
 
+    public Unit VisitBlockStmt(Stmt.Block expr)
+    {
+        ExecuteBlock(expr.Statements, new Environment(_enviroment));
+        return Unit.Value;
+    }
+
+    private void ExecuteBlock(List<Stmt> exprStatements, Environment environment)
+    {
+        var previous = _enviroment;
+        try
+        {
+            _enviroment = environment;
+            foreach (var statement in exprStatements)
+            {
+                Execute(statement);
+            }
+        }
+        finally
+        {
+            _enviroment = previous;
+        }
+    }
+
     public Unit VisitExpressionStmt(Stmt.Expression stmt)
     {
         Evaluate(stmt.LoxExpression);

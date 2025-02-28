@@ -239,7 +239,24 @@ public class Parser
             return PrintStatement();
         }
 
+        if (LoxMatch(TokenType.LeftBrace))
+        {
+           return new Stmt.Block(Block());
+        }
+
         return ExpressionStatement();
+    }
+
+    public List<Stmt> Block()
+    {
+        var statements = new List<Stmt>();
+        while (!Check(TokenType.RightBrace) && !IsAtEnd())
+        {
+            statements.Add(Declarition());
+        }
+        
+        Consume(TokenType.RightBrace, "Expect '}' after block.");
+        return statements;
     }
 
     private Stmt ExpressionStatement()

@@ -2,6 +2,16 @@ namespace Lox;
 
 public class Environment
 {
+    public Environment()
+    {
+        Enclosing = null;
+    }
+
+    public Environment(Environment enclosing)
+    {
+        Enclosing = enclosing;
+    }
+    public Environment Enclosing { get; set; }
     private Dictionary<string, object> _values = new();
     public void Define(string name, object value) => _values[name] = value;
 
@@ -11,6 +21,8 @@ public class Environment
         {
             return _values[name.Lexeme];
         }
+        if (Enclosing != null)
+            return Enclosing.Get(name);
         
         throw new Interpreter.RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
     }
@@ -20,6 +32,12 @@ public class Environment
         if (_values.ContainsKey(exprName.Lexeme))
         {
             _values[exprName.Lexeme] = value;
+            return;
+        }
+
+        if (Enclosing != null)
+        {
+            Enclosing.Assign(exprName, value);
             return;
         }
         

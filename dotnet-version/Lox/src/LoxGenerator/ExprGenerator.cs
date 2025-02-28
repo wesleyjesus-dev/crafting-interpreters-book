@@ -34,6 +34,7 @@ namespace LoxGenerator
             
             var backusNaurFormLoxToStatementAndExpressions = new Dictionary<string, List<string>>()
             {
+                { "Block", ["List<Stmt> statements"] },
                 { "Expression", ["Expr loxExpression"] },
                 { "Print", ["Expr loxExpression"] },
                 { "Var", ["Token name", "Expr initializer"] },
